@@ -1,16 +1,22 @@
-
 import React from 'react';
-import { useAuthentication } from '../context/AuthContext';
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuthentication } from '../context/AuthContext';
 
 const UserRoute = () => {
-    const { user } = useAuthentication();
-    return (
-        <>
-            {user.token ? <Outlet /> : <Navigate to="/signIn" />} {/* Redirect if not authenticated */}
-        </>
-    );
+  const { token, user } = useAuthentication();
+
+  
+  if (!token) {
+    return <Navigate to="/signIn" />;
+  }
+
+  
+  if (user.role && user.role !== 'admin') {
+    return <Outlet />;
+  }
+
+  
+  return <Navigate to="/not-authorized" />;
 };
 
 export default UserRoute;
-

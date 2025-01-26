@@ -2,14 +2,18 @@ import React from 'react'
 import { useAuthentication } from '../context/AuthContext'
 import { Navigate, Outlet } from 'react-router-dom'
 
-const GuestRoute = () => {
-    const {user} = useAuthentication()
-    console.log(user)
-  return (
-    <>
-      {!user.token ? <Outlet /> :<Navigate to="/" />}
-    </>
-  )
+const AdminRoute = () => {
+  const { token, user } = useAuthentication()
+
+  if (!token) {
+    return <Navigate to="/login" /> 
+  }
+
+  if (user?.role !== 'admin') {
+    return <Navigate to="/" /> 
+  }
+
+  return <Outlet /> 
 }
 
-export default GuestRoute
+export default AdminRoute

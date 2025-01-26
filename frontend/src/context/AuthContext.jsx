@@ -1,50 +1,30 @@
+import React, { createContext, useContext, useState } from "react";
+import Cookies from "js-cookie";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
-import Cookies from "js-cookie"
+export const AuthContext = createContext();
 
-export const AuthContext = createContext("");
-const token = Cookies.get('token');
 export const AuthContextProvider = ({ children }) => {
-  const [user, setUser] = useState(() => ({
-    username: localStorage.getItem("username"),
-    email: localStorage.getItem("email"),
-    token: localStorage.getItem("token"),
-    userId: localStorage.getItem("userId"),
-  }));
+  const [token, setToken] = useState(Cookies.get("token") || null);
+  const [user, setUser] = useState({
+    email: Cookies.get("email") || "",
+    username: Cookies.get("username") || "",
+    role: Cookies.get("role") || "",
+  });
 
-  const [profile, setProfile] = useState(null);
-
-  const fetchProfile = async () => {
-    try {
-      const { data } = await axios.get(
-        `http://localhost:3000/api/auth/profile`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setProfile(data);
-    } catch (err) {
-      console.error("Error fetching profile:", err);
-    }
+  const saveToken = (newToken) => {
+    setToken(newToken);
+    Cookies.set("token", newToken);
   };
 
-  useEffect(() => {
-    if (token) {
-      fetchProfile();
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (user.userId) {
-      localStorage.setItem("userId", user.userId);
-    }
-  }, [user.userId]);
+  const saveUser = (userData) => {
+    setUser(userData);
+    Cookies.set("email", userData.email);
+    Cookies.set("username", userData.username);
+    Cookies.set("role", userData.role);  
+  };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, profile }}>
+    <AuthContext.Provider value={{ token, user, saveToken, saveUser }}>
       {children}
     </AuthContext.Provider>
   );

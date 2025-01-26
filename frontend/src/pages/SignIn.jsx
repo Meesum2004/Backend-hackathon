@@ -4,11 +4,11 @@ import axios from "axios";
 import { useAuthentication } from "../context/AuthContext";
 
 const SignInForm = () => {
+  const { saveToken, saveUser } = useAuthentication(); // Get saveToken and saveUser from context
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const { setUser } = useAuthentication();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -18,7 +18,6 @@ const SignInForm = () => {
       [name]: value,
     }));
   };
-
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,19 +32,25 @@ const SignInForm = () => {
     axios
       .post("http://localhost:3000/api/auth/login", formData)
       .then((response) => {
-        alert("User login succesfully!");
-        const { email, token,username } = response.data.user;
-        if (email && token) {
-          // const { username, email } = loginUser;
-          window.localStorage.setItem("username", username);
-          window.localStorage.setItem("email", email);
-          window.localStorage.setItem("token", token);
-          setUser({ username, email, token });
-          navigate("/");
-        }
+        alert("User logged in successfully!");
+        console.log(response);
+
+        const { email, token, username, role } = response.data.user;
+
+        saveToken(token);
+        saveUser({ email, username, role });
+
+        
+        Cookies.set("token", token);
+        Cookies.set("email", email);
+        Cookies.set("username", username);
+        Cookies.set("role", role);
+
+        // Redirect to home or dashboard after successful login
+        navigate("/");
       })
       .catch((err) => {
-        alert(err?.response?.data?.message, "Error Signing In!");
+        alert(err?.response?.data?.message || "Error signing in!");
       });
   };
 
@@ -55,15 +60,10 @@ const SignInForm = () => {
         onSubmit={handleSubmit}
         className="bg-white shadow-lg rounded-lg px-10 pt-8 pb-10 mb-4 w-96 transition-transform transform hover:scale-105 hover:shadow-2xl duration-300 animate-slide-up"
       >
-        <h2 className="text-3xl mb-6 text-center font-semibold ">
-          Sign In
-        </h2>
+        <h2 className="text-3xl mb-6 text-center font-semibold">Sign In</h2>
 
         <div className="mb-4">
-          <label
-            className="block  text-sm font-bold mb-2"
-            htmlFor="email"
-          >
+          <label className="block text-sm font-bold mb-2" htmlFor="email">
             Email
           </label>
           <input
@@ -72,17 +72,14 @@ const SignInForm = () => {
             id="email"
             value={formData.email}
             onChange={handleChange}
-            className="shadow-sm appearance-none border rounded-lg w-full py-3 px-4  leading-tight focus:outline-none focus:ring-2 focus:ring-red-900 transition duration-150 ease-in-out"
+            className="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-red-900 transition duration-150 ease-in-out"
             placeholder="Email"
             required
           />
         </div>
 
         <div className="mb-6">
-          <label
-            className="block  text-sm font-bold mb-2"
-            htmlFor="password"
-          >
+          <label className="block text-sm font-bold mb-2" htmlFor="password">
             Password
           </label>
           <input
@@ -91,7 +88,7 @@ const SignInForm = () => {
             id="password"
             value={formData.password}
             onChange={handleChange}
-            className="shadow-sm appearance-none border rounded-lg w-full py-3 px-4  leading-tight focus:outline-none focus:ring-2 focus:ring-red-900  transition duration-150 ease-in-out"
+            className="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-red-900 transition duration-150 ease-in-out"
             placeholder="Enter Your Password"
             required
           />
@@ -107,9 +104,6 @@ const SignInForm = () => {
         </div>
         <NavLink to="/signUp" className="flex justify-center p-2 underline">
           Create an account
-        </NavLink>
-        <NavLink to="/jobs" className="flex justify-center p-2 ">
-          View Jobs
         </NavLink>
       </form>
     </div>
